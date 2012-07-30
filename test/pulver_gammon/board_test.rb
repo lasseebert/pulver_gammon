@@ -148,7 +148,7 @@ class TestBoard < Test::Unit::TestCase
 
   def test_validate_bear_off_with_too_large_dice_incorrect
     set_board({0 => 1, 1 => 1})
-    assert @board.validate_move([[1, 6]], [6])
+    assert PulverGammon::Board.validate_single_move([1, 6], @board.fields[:black], @board.fields[:white])
   end
 
 end

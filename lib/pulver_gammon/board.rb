@@ -1,3 +1,5 @@
+require_relative 'move_combinator'
+
 module PulverGammon
   class Board
 
@@ -40,20 +42,52 @@ module PulverGammon
       other_fields = fields[other_color]
 
       moves.each do |move|
-        Board.move_internal(move, turn_fields, other_fields)
+        Board.move_single(move, turn_fields, other_fields)
       end
 
       self.turn = other_color
+      true
     end
 
     # Returns a boolean indicating if the move is legal
     def validate_move(moves, dice)
+
+      # Must be two dice
+      return false unless dice.length == 2
+
       turn_fields = fields[turn].dup
       other_color = turn == :black ? :white : :black
       other_fields = fields[other_color].dup
 
+      # Check dice
+      dice = Array.new(4, dice[0]) if (dice[0] == dice[1])
+
+      if dice.length == moves.length
+        # Must match
+        dice.sort!
+        amounts = moves.map{|x| x[1]}.sort
+        (0..dice.length).each do |index|
+          return false unless dice[index] == amounts[index]
+        end
+      else
+        # Must not be able to use greater amount
+        amount = moves.map{ |move| move[1] }.reduce(:+)
+        max_amount = MoveCombinator.get_legal_moves(self, dice).max{ |combo| combo.map {|move| move[1]}.reduce(:+) }
+        return false unless amount == max_amount
+      end
+
       moves.each do |move|
-  
+
+        # Validate
+        return false unless Board.validate_single_move(move, turn_fields, other_fields)  
+
+        # Make the move on the dupes
+        Board.move_single(move, turn_fields, other_fields)
+      end
+      true
+    end
+
+    def self.validate_single_move(move, turn_fields, other_fields)
         from_field = move[0]
         amount = move[1]
 
@@ -71,26 +105,13 @@ module PulverGammon
 
         # Bearing off
         if to_field < 0
-          return false if last_checker(turn) > 5
-          return false if to_field < -1 && from_field != last_checker(turn)
+          return false if Board.last_checker(turn_fields) > 5
+          return false if to_field < -1 && from_field != Board.last_checker(turn_fields)
         end
-
-        # Make the move on the dupes
-        Board.move_internal(move, turn_fields, other_fields)
-      end
-      true
+        true
     end
 
-    private 
-
-    def last_checker(color)
-      (0..24).to_a.reverse.each do |index|
-        return index if fields[index] > 0
-      end
-      -1
-    end
-
-    def self.move_internal(move, turn_fields, other_fields)
+    def self.move_single(move, turn_fields, other_fields)
 
       from_field = move[0]
       amount = move[1]
@@ -106,6 +127,17 @@ module PulverGammon
         end
       end
     end
+
+
+    private 
+
+    def self.last_checker(fields)
+      (0..24).to_a.reverse.each do |index|
+        return index if fields[index] > 0
+      end
+      -1
+    end
+
 
   end
 end
