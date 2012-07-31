@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'pulver_gammon/board'
 
-class TestBoard < Test::Unit::TestCase
+class BoardTest < Test::Unit::TestCase
   
   def setup
     @board = PulverGammon::Board.new(:black)
@@ -85,7 +85,7 @@ class TestBoard < Test::Unit::TestCase
   end
   def test_validate_missing_hitting_single
     set_board({5 => 1}, {19 => 1})
-    assert @board.validate_move([[5, 1]], [1])
+    assert PulverGammon::Board.validate_single_move([5, 1], @board.fields[:black], @board.fields[:white])
   end
 
   def test_validate_not_using_largest_dice_amount
@@ -114,7 +114,7 @@ class TestBoard < Test::Unit::TestCase
 
   def test_validate_moving_prison_checker
     set_board({23 => 1, 24 => 1})
-    assert @board.validate_move([[24, 1]], [1])
+    assert PulverGammon::Board.validate_single_move([24, 1], @board.fields[:black], @board.fields[:white])
   end
 
   def test_validate_no_moves
@@ -133,12 +133,12 @@ class TestBoard < Test::Unit::TestCase
 
   def test_validate_bear_off_with_checkers_outside_home
     set_board({0 => 1, 6 => 1})
-    assert_false @board.validate_move([[0, 1]], [1])
+    assert_false PulverGammon::Board.validate_single_move([0, 1], @board.fields[:black], @board.fields[:white])
   end
 
   def test_validate_bear_off_without_checkers_outside_home
     set_board({0 => 1, 5 => 1})
-    assert @board.validate_move([[0, 1]], [1])
+    assert PulverGammon::Board.validate_single_move([0, 1], @board.fields[:black], @board.fields[:white])
   end
 
   def test_validate_bear_off_with_too_large_dice_correct

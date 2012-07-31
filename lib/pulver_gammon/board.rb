@@ -72,7 +72,7 @@ module PulverGammon
       else
         # Must not be able to use greater amount
         amount = moves.map{ |move| move[1] }.reduce(:+)
-        max_amount = MoveCombinator.get_legal_moves(self, dice).max{ |combo| combo.map {|move| move[1]}.reduce(:+) }
+        max_amount = MoveCombinator.get_legal_moves(self, dice).map { |combo| combo.map { |move| move[1] }.reduce(:+) }.max
         return false unless amount == max_amount
       end
 
